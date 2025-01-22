@@ -24,10 +24,10 @@ We welcome your feedback and sincerely appreciate your time! If you encounter bu
 ## Citation
 
 ```tex
-@article{li2024subgraphrag,
+@inproceedings{li2024subgraphrag,
     title={Simple is Effective: The Roles of Graphs and Large Language Models in Knowledge-Graph-Based Retrieval-Augmented Generation},
     author={Li, Mufei and Miao, Siqi and Li, Pan},
-    journal={arXiv preprint arXiv:2410.20724},
-    year={2024}
+    booktitle={International Conference on Learning Representations},
+    year={2025}
 }
 ```
