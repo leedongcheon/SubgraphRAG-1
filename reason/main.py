@@ -52,23 +52,19 @@ def load_checkpoint(file_path):
     return []
 
 
-def eval_all(pred_file_path, run, cot, subset, bad_samples, split=None, eval_hops=-1):
-    assert not (subset and bad_samples)
+def eval_all(pred_file_path, run, cot, subset, split=None, eval_hops=-1):
 
     print("=" * 50)
     print("=" * 50)
     print(f"Evaluating on subset: {subset}")
-    print(f"Evaluating on bad samples: {bad_samples}")
     if cot:
         print("Results with COT:")
     else:
         print("Results without COT:")
 
     print("Corrected metrics:")
-    hit, f1, prec, recall, em, tw, mi_f1, mi_prec, mi_recall, total_cnt, no_ans_cnt, no_ans_ratio, hal_score, stats = eval_results_corrected(str(pred_file_path), cal_f1=True, subset=subset, split=split, bad_samples=bad_samples, eval_hops=eval_hops)
-    if bad_samples:
-        postfix = "_bad"
-    elif subset:
+    hit, f1, prec, recall, em, tw, mi_f1, mi_prec, mi_recall, total_cnt, no_ans_cnt, no_ans_ratio, hal_score, stats = eval_results_corrected(str(pred_file_path), cal_f1=True, subset=subset, split=split, eval_hops=eval_hops)
+    if subset:
         postfix = "_sub"
     else:
         postfix = ""
@@ -175,16 +171,14 @@ def main():
     # If the processing completes, rename the files to remove the "resume" flag
     final_pred_file_path = raw_pred_file_path.with_name(raw_pred_file_path.stem.replace("-resume", "") + raw_pred_file_path.suffix)
     os.rename(raw_pred_file_path, final_pred_file_path)
-    eval_all(final_pred_file_path, run, cot=False, subset=True, bad_samples=False)
-    eval_all(final_pred_file_path, run, cot=False, subset=False, bad_samples=False)
-    eval_all(final_pred_file_path, run, cot=False, subset=False, bad_samples=True)
+    eval_all(final_pred_file_path, run, cot=False, subset=True)
+    eval_all(final_pred_file_path, run, cot=False, subset=False)
 
     if "cot" in llm_mode:
         final_pred_cot_file_path = raw_pred_cot_file_path.with_name(raw_pred_cot_file_path.stem.replace("-resume", "") + raw_pred_cot_file_path.suffix)
         os.rename(raw_pred_cot_file_path, final_pred_cot_file_path)
-        eval_all(final_pred_cot_file_path, run, cot=True, subset=True, bad_samples=False)
-        eval_all(final_pred_cot_file_path, run, cot=True, subset=False, bad_samples=False)
-        eval_all(final_pred_cot_file_path, run, cot=True, subset=False, bad_samples=True)
+        eval_all(final_pred_cot_file_path, run, cot=True, subset=True)
+        eval_all(final_pred_cot_file_path, run, cot=True, subset=False)
     else:
         # If COT mode was not used, remove the COT file
         if raw_pred_cot_file_path.exists():

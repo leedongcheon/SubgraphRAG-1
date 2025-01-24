@@ -1,3 +1,9 @@
+"""
+This file is mostly from https://github.com/RManLuo/reasoning-on-graphs/blob/master/src/qa_prediction/evaluate_results.py.
+We primarily use this file to obtain the Hit metric in our paper.
+"""
+
+
 import argparse
 import glob
 import json

@@ -1,3 +1,9 @@
+"""
+In this file, we corrected a few bugs in the code from previous literature.
+We use this file to obtain all the metrics in our paper except the Hit metric.
+"""
+
+
 import sys
 sys.path.append('../')
 from preprocess.prepare_data import get_data
