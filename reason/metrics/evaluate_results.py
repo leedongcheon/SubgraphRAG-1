@@ -174,7 +174,7 @@ def eval_results(predict_file, cal_f1=True, topk = -1, subset=False, bad_samples
     avg_f1 = sum(f1_list) * 100 / len(f1_list)
     avg_precission = sum(precission_list) * 100 / len(precission_list)
     avg_recall = sum(recall_list) * 100 / len(recall_list)
-    result_str = f"Hit: {avg_hit}, F1: {avg_f1}, Precission: {avg_precission}, Recall: {avg_recall}"
+    result_str = f"Hit: {avg_hit}" #, F1: {avg_f1}, Precission: {avg_precission}, Recall: {avg_recall}"
     print(result_str)
 
     result_name = "eval_result_top_{topk}.txt" if topk > 0 else 'eval_result.txt'

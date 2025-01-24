@@ -58,37 +58,31 @@ def eval_all(pred_file_path, run, subset, split=None, eval_hops=-1):
     print("=" * 50)
     print(f"Evaluating on subset: {subset}")
 
-    print("Corrected metrics:")
-    hit, f1, prec, recall, em, tw, mi_f1, mi_prec, mi_recall, total_cnt, no_ans_cnt, no_ans_ratio, hal_score, stats = eval_results_corrected(str(pred_file_path), cal_f1=True, subset=subset, split=split, eval_hops=eval_hops)
+    print("Results:")
+    hit1, f1, prec, recall, em, tw, mi_f1, mi_prec, mi_recall, total_cnt, no_ans_cnt, no_ans_ratio, hal_score, stats = eval_results_corrected(str(pred_file_path), cal_f1=True, subset=subset, split=split, eval_hops=eval_hops)
     if subset:
         postfix = "_sub"
     else:
         postfix = ""
-    run.log({f"corrected{postfix}/hit": hit,
-             f"corrected{postfix}/f1": f1,
-             f"corrected{postfix}/precision": prec,
-             f"corrected{postfix}/recall": recall,
-             f"corrected{postfix}/exact_match": em,
-             f"corrected{postfix}/totally_wrong": tw,
-             f"corrected{postfix}/micro_f1": mi_f1,
-             f"corrected{postfix}/micro_precision": mi_prec,
-             f"corrected{postfix}/micro_recall": mi_recall,
-             f"corrected{postfix}/total_cnt": total_cnt,
-             f"corrected{postfix}/no_ans_cnt": no_ans_cnt,
-             f"corrected{postfix}/no_ans_ratio": no_ans_ratio,
-             f"corrected{postfix}/hal_score": hal_score})
-    print("=" * 50)
+    run.log({f"results{postfix}/hit@1": hit1,
+             f"results{postfix}/macro_f1": f1,
+             f"results{postfix}/macro_precision": prec,
+             f"results{postfix}/macro_recall": recall,
+             f"results{postfix}/exact_match": em,
+             f"results{postfix}/totally_wrong": tw,
+             f"results{postfix}/micro_f1": mi_f1,
+             f"results{postfix}/micro_precision": mi_prec,
+             f"results{postfix}/micro_recall": mi_recall,
+             f"results{postfix}/total_cnt": total_cnt,
+             f"results{postfix}/no_ans_cnt": no_ans_cnt,
+             f"results{postfix}/no_ans_ratio": no_ans_ratio,
+             f"results{postfix}/hal_score": hal_score})  # score_h in the paper
     if stats is not None:
         for k, v in stats.items():
             run.log({f"stats{postfix}/{k}": v})
 
-
-    print("Original metrics:")
-    hit, f1, prec, recall = eval_results_original(str(pred_file_path), cal_f1=True, subset=subset, bad_samples=bad_samples, eval_hops=eval_hops)
-    run.log({f"original{postfix}/hit": hit,
-             f"original{postfix}/f1": f1,
-             f"original{postfix}/precision": prec,
-             f"original{postfix}/recall": recall})
+    hit, _, _, _ = eval_results_original(str(pred_file_path), cal_f1=True, subset=subset, eval_hops=eval_hops)
+    run.log({f"results{postfix}/hit": hit})
     print("=" * 50)
     print("=" * 50)
 

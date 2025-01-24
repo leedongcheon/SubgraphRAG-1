@@ -258,6 +258,7 @@ def eval_results(predict_file, cal_f1=True, split=None, subset=False, bad_sample
     prompt_mode = predict_file.split('/')[-1].split('-')[0]
     triplets = get_data(dataset_name, pred_file_path, samples_to_eval_path, 'test', prompt_mode)
     triplets_dict = {}
+    # To evaluate the hal score, we need the retrieved triplets for each question
     for each in triplets:
         if split == '\n':
             # RoG
@@ -369,7 +370,7 @@ def eval_results(predict_file, cal_f1=True, split=None, subset=False, bad_sample
     micro_recall = total_match / total_answer
     micro_f1 = 2 * micro_precision * micro_recall / (micro_precision + micro_recall)
 
-    result_str = f"Hit: {avg_hit}, F1: {avg_f1}, precision: {avg_precision}, Recall: {avg_recall},  Exact Match: {num_exact_match}, Totally Wrong: {num_totally_wrong}, Hal Score: {avg_hal_score}"
+    result_str = f"Hit@1: {avg_hit}, Macro F1: {avg_f1}, Macro Precision: {avg_precision}, Macro Recall: {avg_recall}, Exact Match: {num_exact_match}, Totally Wrong: {num_totally_wrong}, Hal Score: {avg_hal_score}"
     print(result_str)
     print(f"Micro F1: {micro_f1}, Micro precision: {micro_precision}, Micro Recall: {micro_recall}")
     print(f"Total number of samples: {total_cnt}, no answer samples: {no_ans_cnt}, ratio: {no_ans_cnt / total_cnt}")
