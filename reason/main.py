@@ -52,15 +52,11 @@ def load_checkpoint(file_path):
     return []
 
 
-def eval_all(pred_file_path, run, cot, subset, split=None, eval_hops=-1):
+def eval_all(pred_file_path, run, subset, split=None, eval_hops=-1):
 
     print("=" * 50)
     print("=" * 50)
     print(f"Evaluating on subset: {subset}")
-    if cot:
-        print("Results with COT:")
-    else:
-        print("Results without COT:")
 
     print("Corrected metrics:")
     hit, f1, prec, recall, em, tw, mi_f1, mi_prec, mi_recall, total_cnt, no_ans_cnt, no_ans_ratio, hal_score, stats = eval_results_corrected(str(pred_file_path), cal_f1=True, subset=subset, split=split, eval_hops=eval_hops)
@@ -68,19 +64,19 @@ def eval_all(pred_file_path, run, cot, subset, split=None, eval_hops=-1):
         postfix = "_sub"
     else:
         postfix = ""
-    run.log({f"corrected{postfix}/hit{'_cot' if cot else ''}": hit,
-             f"corrected{postfix}/f1{'_cot' if cot else ''}": f1,
-             f"corrected{postfix}/precision{'_cot' if cot else ''}": prec,
-             f"corrected{postfix}/recall{'_cot' if cot else ''}": recall,
-             f"corrected{postfix}/exact_match{'_cot' if cot else ''}": em,
-             f"corrected{postfix}/totally_wrong{'_cot' if cot else ''}": tw,
-             f"corrected{postfix}/micro_f1{'_cot' if cot else ''}": mi_f1,
-             f"corrected{postfix}/micro_precision{'_cot' if cot else ''}": mi_prec,
-             f"corrected{postfix}/micro_recall{'_cot' if cot else ''}": mi_recall,
-             f"corrected{postfix}/total_cnt{'_cot' if cot else ''}": total_cnt,
-             f"corrected{postfix}/no_ans_cnt{'_cot' if cot else ''}": no_ans_cnt,
-             f"corrected{postfix}/no_ans_ratio{'_cot' if cot else ''}": no_ans_ratio,
-             f"corrected{postfix}/hal_score{'_cot' if cot else ''}": hal_score})
+    run.log({f"corrected{postfix}/hit": hit,
+             f"corrected{postfix}/f1": f1,
+             f"corrected{postfix}/precision": prec,
+             f"corrected{postfix}/recall": recall,
+             f"corrected{postfix}/exact_match": em,
+             f"corrected{postfix}/totally_wrong": tw,
+             f"corrected{postfix}/micro_f1": mi_f1,
+             f"corrected{postfix}/micro_precision": mi_prec,
+             f"corrected{postfix}/micro_recall": mi_recall,
+             f"corrected{postfix}/total_cnt": total_cnt,
+             f"corrected{postfix}/no_ans_cnt": no_ans_cnt,
+             f"corrected{postfix}/no_ans_ratio": no_ans_ratio,
+             f"corrected{postfix}/hal_score": hal_score})
     print("=" * 50)
     if stats is not None:
         for k, v in stats.items():
@@ -89,10 +85,10 @@ def eval_all(pred_file_path, run, cot, subset, split=None, eval_hops=-1):
 
     print("Original metrics:")
     hit, f1, prec, recall = eval_results_original(str(pred_file_path), cal_f1=True, subset=subset, bad_samples=bad_samples, eval_hops=eval_hops)
-    run.log({f"original{postfix}/hit{'_cot' if cot else ''}": hit,
-             f"original{postfix}/f1{'_cot' if cot else ''}": f1,
-             f"original{postfix}/precision{'_cot' if cot else ''}": prec,
-             f"original{postfix}/recall{'_cot' if cot else ''}": recall})
+    run.log({f"original{postfix}/hit": hit,
+             f"original{postfix}/f1": f1,
+             f"original{postfix}/precision": prec,
+             f"original{postfix}/recall": recall})
     print("=" * 50)
     print("=" * 50)
 
@@ -145,7 +141,6 @@ def main():
     raw_pred_folder_path = Path(f"./results/KGQA/{dataset_name}/SubgraphRAG/{args.model_name.split('/')[-1]}")
     raw_pred_folder_path.mkdir(parents=True, exist_ok=True)
     raw_pred_file_path = raw_pred_folder_path / f"{prompt_mode}-{llm_mode}-{frequency_penalty}-thres_{thres}-{split}-predictions-resume.jsonl"
-    raw_pred_cot_file_path = raw_pred_folder_path / f"{prompt_mode}-{llm_mode}-{frequency_penalty}-thres_{thres}-{split}-cot-predictions-resume.jsonl"
 
     llm = llm_init(model_name, tensor_parallel_size, max_seq_len_to_capture, max_tokens, seed, temperature, frequency_penalty)
     data = get_data(dataset_name, pred_file_path, score_dict_path, split, prompt_mode)
@@ -155,7 +150,7 @@ def main():
 
     print("Starting inference...")
     start_idx = len(load_checkpoint(raw_pred_file_path))
-    with open(raw_pred_file_path, "a") as pred_file, open(raw_pred_cot_file_path, "a") as pred_cot_file:
+    with open(raw_pred_file_path, "a") as pred_file:
         for idx, each_qa in enumerate(tqdm(data[start_idx:], initial=start_idx, total=len(data))):
             res = llm_inf_all(llm, each_qa, llm_mode, model_name)
 
@@ -164,25 +159,11 @@ def main():
             each_qa["prediction"] = res[0]
             save_checkpoint(pred_file, each_qa)
 
-            if "cot" in llm_mode:
-                each_qa["prediction"] = res[1]
-                save_checkpoint(pred_cot_file, each_qa)
-
     # If the processing completes, rename the files to remove the "resume" flag
     final_pred_file_path = raw_pred_file_path.with_name(raw_pred_file_path.stem.replace("-resume", "") + raw_pred_file_path.suffix)
     os.rename(raw_pred_file_path, final_pred_file_path)
-    eval_all(final_pred_file_path, run, cot=False, subset=True)
-    eval_all(final_pred_file_path, run, cot=False, subset=False)
-
-    if "cot" in llm_mode:
-        final_pred_cot_file_path = raw_pred_cot_file_path.with_name(raw_pred_cot_file_path.stem.replace("-resume", "") + raw_pred_cot_file_path.suffix)
-        os.rename(raw_pred_cot_file_path, final_pred_cot_file_path)
-        eval_all(final_pred_cot_file_path, run, cot=True, subset=True)
-        eval_all(final_pred_cot_file_path, run, cot=True, subset=False)
-    else:
-        # If COT mode was not used, remove the COT file
-        if raw_pred_cot_file_path.exists():
-            os.remove(raw_pred_cot_file_path)
+    eval_all(final_pred_file_path, run, subset=True)
+    eval_all(final_pred_file_path, run, subset=False)
 
 
 if __name__ == "__main__":
